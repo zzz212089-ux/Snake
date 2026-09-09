@@ -1,0 +1,971 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NOKIA 3310 經典貪食蛇 (穿牆版)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=VT323&family=Rajdhani:wght@600;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --n3310-shell: #273448;
+      --n3310-shell-dark: #192230;
+      --n3310-silver: #c8d1db;
+      --n3310-silver-dark: #8b97a6;
+      --n3310-btn-bg: #dfe5ec;
+      --n3310-btn-shadow: #8c98a7;
+      --n3310-blue-accent: #3b95d9;
+      --lcd-bg: #94ad5e;
+      --lcd-pixel: #1c2712;
+      --lcd-dim: #829b4e;
+    }
+
+    body {
+      background: radial-gradient(circle at 50% 25%, #1f2733 0%, #0d1219 100%);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    .pixel-font {
+      font-family: 'VT323', monospace;
+    }
+
+    /* 3310 原型鵝卵石流線機身外殼 */
+    .nokia3310-body {
+      width: 330px;
+      background: linear-gradient(175deg, #32435c 0%, #253347 45%, #1c2635 100%);
+      border-radius: 56px 56px 68px 68px;
+      box-shadow: 
+        0 24px 50px rgba(0, 0, 0, 0.85),
+        0 10px 20px rgba(0, 0, 0, 0.6),
+        inset 0 3px 6px rgba(255, 255, 255, 0.35),
+        inset 0 -5px 12px rgba(0, 0, 0, 0.8);
+      border: 3.5px solid #1c2636;
+      position: relative;
+      user-select: none;
+    }
+
+    /* 頂部電源按鍵 */
+    .power-button {
+      width: 44px;
+      height: 6px;
+      background: #151d27;
+      border-radius: 4px 4px 0 0;
+      margin: 0 auto -2px auto;
+      border: 1px solid #2d3b4d;
+      border-bottom: none;
+    }
+
+    /* 經典前置銀灰飾板 (Shield Faceplate) */
+    .silver-faceplate {
+      background: linear-gradient(180deg, #d3dbe6 0%, #a4b2c2 100%);
+      border-radius: 40px 40px 52px 52px;
+      border: 2px solid #8593a3;
+      box-shadow: 
+        inset 0 2px 3px #ffffff,
+        inset 0 -3px 5px rgba(0, 0, 0, 0.4),
+        0 3px 6px rgba(0, 0, 0, 0.5);
+      padding: 10px 14px 14px 14px;
+      position: relative;
+    }
+
+    /* 螢幕外框與鏡面凹槽 */
+    .screen-housing {
+      background: #202b3a;
+      border-radius: 20px;
+      padding: 7px;
+      box-shadow: 
+        inset 0 3px 6px rgba(0,0,0,0.9),
+        0 1.5px 2px rgba(255,255,255,0.4);
+      border: 2px solid #556578;
+    }
+
+    /* 經典 Nokia 3310 LCD 綠色像素液晶點陣背光 */
+    .lcd-screen {
+      background-color: var(--lcd-bg);
+      background-image: 
+        radial-gradient(rgba(0, 0, 0, 0.05) 15%, transparent 16%),
+        linear-gradient(rgba(28, 39, 18, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(28, 39, 18, 0.04) 1px, transparent 1px);
+      background-size: 3px 3px, 3px 3px, 3px 3px;
+      box-shadow: inset 0 0 12px var(--lcd-dim);
+      image-rendering: pixelated;
+    }
+
+    /* 穿牆動態虛線框指示 */
+    @keyframes wrapPulse {
+      0% { opacity: 0.35; }
+      50% { opacity: 0.85; }
+      100% { opacity: 0.35; }
+    }
+    .wrap-border-indicator {
+      animation: wrapPulse 2s infinite ease-in-out;
+    }
+
+    /* 招牌巨大新月形 Navi 鍵 (帶有經典淡藍細條紋) */
+    .navi-key-container {
+      position: relative;
+      width: 100%;
+      height: 38px;
+      display: flex;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .navi-btn {
+      width: 108px;
+      height: 34px;
+      background: linear-gradient(180deg, #f5f8fb 0%, #cbd6e2 60%, #9ca9b8 100%);
+      border-radius: 18px / 14px;
+      border: 1.5px solid #ffffff;
+      box-shadow: 
+        0 4px 5px rgba(0,0,0,0.45),
+        inset 0 2px 2px #ffffff,
+        inset 0 -2px 3px rgba(0,0,0,0.35);
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      transition: all 0.05s ease;
+    }
+    .navi-btn:active, .navi-btn.key-down {
+      transform: translateY(2px) scale(0.97);
+      background: linear-gradient(180deg, #cbd6e2 0%, #9ca9b8 100%);
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* Navi 鍵正中央經典淡藍色立體橫飾條 */
+    .navi-blue-bar {
+      width: 32px;
+      height: 3.5px;
+      background: var(--n3310-blue-accent);
+      border-radius: 3px;
+      box-shadow: 0 1px 1.5px rgba(0,0,0,0.3);
+    }
+
+    /* 左右兩枚月牙附屬鍵 (C 鍵 與 上下滾動箭頭鍵) */
+    .sub-key {
+      position: absolute;
+      top: 5px;
+      width: 48px;
+      height: 30px;
+      background: linear-gradient(180deg, #edf2f7 0%, #b8c4d1 100%);
+      border: 1.5px solid #ffffff;
+      box-shadow: 
+        0 3px 4px rgba(0,0,0,0.4),
+        inset 0 1.5px 1px #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #273448;
+      font-weight: 900;
+      transition: all 0.06s ease;
+    }
+    .sub-key:active, .sub-key.key-down {
+      transform: translateY(2px);
+      box-shadow: inset 0 2px 3px rgba(0,0,0,0.6);
+      background: #a2afbe;
+    }
+    .sub-key-left {
+      left: 12px;
+      border-radius: 16px 6px 18px 14px;
+      transform: rotate(-10deg);
+    }
+    .sub-key-right {
+      right: 12px;
+      border-radius: 6px 16px 14px 18px;
+      transform: rotate(10deg);
+    }
+
+    /* 3310 標誌性橢圓形微笑弧線排列鍵盤 */
+    .keypad-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 7px;
+      padding: 10px 18px 24px 18px;
+    }
+
+    .key-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .oval-key {
+      flex: 1;
+      height: 32px;
+      background: linear-gradient(180deg, #f7f9fb 0%, #cbd6e2 60%, #9aa8b9 100%);
+      border-radius: 16px;
+      border: 1.5px solid #ffffff;
+      box-shadow: 
+        0 3px 4px rgba(0, 0, 0, 0.45),
+        inset 0 1.5px 1px #ffffff,
+        inset 0 -2px 2px rgba(0,0,0,0.3);
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: #17212e;
+      transition: all 0.06s ease;
+      touch-action: manipulation;
+    }
+    .oval-key:active, .oval-key.key-down {
+      transform: translateY(2px);
+      background: #a6b5c5;
+      box-shadow: inset 0 2px 4px rgba(0,0,0,0.6);
+    }
+
+    /* 3310 按鍵外圍微笑微傾斜 */
+    .row-1 .key-left { transform: rotate(-5deg) translateY(2px); }
+    .row-1 .key-right { transform: rotate(5deg) translateY(2px); }
+    .row-2 .key-left { transform: rotate(-3deg) translateY(1px); }
+    .row-2 .key-right { transform: rotate(3deg) translateY(1px); }
+    .row-3 .key-left { transform: rotate(-2deg); }
+    .row-3 .key-right { transform: rotate(2deg); }
+    .row-4 .key-left { transform: rotate(-4deg); }
+    .row-4 .key-right { transform: rotate(4deg); }
+
+    #phoneScaler {
+      transform-origin: top center;
+      transition: transform 0.1s ease-out;
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center p-2 select-none text-gray-200">
+
+  <!-- 頂部整機縮放懸浮控制列 -->
+  <div class="sticky top-2 z-50 mb-3 bg-slate-900/90 backdrop-blur-md px-3 sm:px-4 py-2 rounded-2xl border border-slate-700/80 shadow-2xl flex flex-wrap items-center justify-center gap-2 sm:gap-3 text-xs">
+    <div class="flex items-center gap-1.5">
+      <span class="text-sky-400 font-bold tracking-wider">📱 3310 整機縮放:</span>
+      <button id="btnZoomMinus" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold rounded-lg border border-slate-600 flex items-center justify-center text-sm shadow">－</button>
+      <input id="zoomSlider" type="range" min="0.55" max="1.50" step="0.05" value="1.0" class="w-20 sm:w-28 h-2 bg-slate-700 rounded-lg appearance-none cursor-pointer accent-sky-400">
+      <button id="btnZoomPlus" class="w-7 h-7 bg-slate-800 hover:bg-slate-700 active:scale-95 text-white font-bold rounded-lg border border-slate-600 flex items-center justify-center text-sm shadow">＋</button>
+      <span id="zoomPercentText" class="font-mono text-amber-300 font-bold w-11 text-center">100%</span>
+    </div>
+
+    <div class="flex items-center gap-1.5 border-l border-slate-700 pl-2">
+      <button id="btnZoomReset" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold rounded-md active:scale-95 border border-slate-600 text-[11px]">
+        重設 100%
+      </button>
+      <!-- 模式切換按鈕 -->
+      <button id="btnModeToggle" class="px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 font-bold text-[11px] flex items-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer">
+        <span id="modeDot" class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+        <span id="modeStatusText">模式：可穿牆</span>
+      </button>
+    </div>
+  </div>
+
+  <!-- 可縮放整機總成 -->
+  <div id="phoneScaler">
+    <div class="power-button"></div>
+    
+    <!-- 3310 海軍藍經典機身主體 -->
+    <div class="nokia3310-body pt-3 pb-4">
+      
+      <!-- 頂部 5 道經典直列聽筒槽 (與照片完全一致) -->
+      <div class="flex flex-col items-center gap-[2.5px] mb-2">
+        <div class="w-1 h-1 rounded-full bg-[#111822] shadow-inner"></div>
+        <div class="w-1 h-1 rounded-full bg-[#111822] shadow-inner"></div>
+        <div class="w-1 h-1.5 rounded-full bg-[#111822] shadow-inner"></div>
+        <div class="w-1 h-1 rounded-full bg-[#111822] shadow-inner"></div>
+        <div class="w-1 h-1 rounded-full bg-[#111822] shadow-inner"></div>
+      </div>
+
+      <!-- 白色經典 NOKIA 標誌 -->
+      <div class="text-center font-extrabold tracking-[0.24em] text-[15px] text-white drop-shadow-[0_1.5px_1px_rgba(0,0,0,0.8)] mb-2 font-['Rajdhani']">
+        NOKIA
+      </div>
+
+      <!-- 經典銀色盾牌飾板 (包覆螢幕外側與 Navi 按鍵) -->
+      <div class="mx-3.5 silver-faceplate">
+        
+        <!-- 獨立於遊戲框外的復古數位計分面板 (完全不遮擋螢幕內部) -->
+        <div class="flex items-center justify-between px-2.5 py-1 mb-1.5 bg-[#8b98a8] rounded-lg border border-[#748292] shadow-[inset_0_1.5px_2.5px_rgba(0,0,0,0.35)]">
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-[9px] font-black tracking-wider text-[#222e3e]">SCORE</span>
+            <span id="liveScoreBadge" class="pixel-font text-xl text-[#0d141e] font-black leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]">0</span>
+          </div>
+          <div class="flex items-center gap-1">
+            <button id="outerModeTag" class="text-[8px] font-black px-1.5 py-0.5 rounded bg-[#1e2a39] text-[#a4b878] border border-[#1e2a39] tracking-wider cursor-pointer hover:bg-[#121c27] active:scale-95 transition-all" title="點擊切換 穿牆/撞牆 模式">
+              穿牆版
+            </button>
+          </div>
+          <div class="flex items-baseline gap-1.5">
+            <span class="text-[9px] font-black tracking-wider text-[#222e3e]">HIGH</span>
+            <span id="outerHighScoreBadge" class="pixel-font text-xl text-[#0d141e] font-black leading-none drop-shadow-[0_1px_0_rgba(255,255,255,0.4)]">0</span>
+          </div>
+        </div>
+
+        <!-- 螢幕外框與滿版 LCD 液晶點陣螢幕 (內部純淨無遮擋) -->
+        <div class="screen-housing">
+          <div class="lcd-screen w-full h-[184px] rounded-lg relative overflow-hidden flex flex-col">
+            
+            <!-- 遊戲滿版畫布 -->
+            <canvas id="gameCanvas" class="w-full h-full block cursor-pointer"></canvas>
+
+            <!-- 穿牆/實心牆動態外框指示層 -->
+            <div id="wallIndicator" class="absolute inset-0 pointer-events-none border border-dashed border-[#243518]/40 m-0.5 rounded wrap-border-indicator"></div>
+
+            <!-- 遊戲選單 / 暫停 / 結算覆蓋層 -->
+            <div id="gameOverlay" class="absolute inset-0 bg-[#94ad5e]/95 flex flex-col items-center justify-center text-center p-2 text-[#182410]">
+              <div id="overlayTitle" class="pixel-font text-4xl font-bold tracking-wider leading-none mb-1">SNAKE II</div>
+              <div id="overlayModeBanner" class="pixel-font text-xs font-bold px-2 py-0.5 mb-1 rounded bg-[#1c2712] text-[#94ad5e]">
+                目前模式: 可穿牆 (按 * 鍵切換)
+              </div>
+              <div id="overlaySub" class="pixel-font text-lg leading-tight mb-2">SPEED: <span id="speedDisplay">5</span></div>
+              <div class="pixel-font text-xs bg-[#182410] text-[#94ad5e] px-2.5 py-1 rounded font-bold animate-pulse">
+                [按 NAVI 大鍵 或 空格鍵 開始]
+              </div>
+              <div class="pixel-font text-xs mt-2 text-[#243519]">
+                最高紀錄: <span id="highScoreDisplay">0</span>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <!-- 3310 招牌巨大新月型 NAVI 控制鍵區 -->
+        <div class="navi-key-container">
+          <!-- 左側 C 鍵 (清除 / 返回) -->
+          <button id="keyC" class="sub-key sub-key-left" title="返回 / 退出 (C)">
+            <span class="text-sm tracking-tighter">C</span>
+          </button>
+
+          <!-- 中央主 NAVI 大鍵 (帶有經典淡藍色橫條) -->
+          <button id="keyNavi" class="navi-btn" title="確定 / 開始 / 暫停 (Navi)">
+            <div class="navi-blue-bar"></div>
+          </button>
+
+          <!-- 右側上下雙向滾動箭頭鍵 (調整難度) -->
+          <button id="keyScroll" class="sub-key sub-key-right flex flex-col items-center justify-center leading-none" title="切換難度 (▲/▼)">
+            <span class="text-[9px] font-black">▲</span>
+            <span class="text-[9px] font-black mt-0.5">▼</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 下方微笑弧度立體橢圓數字鍵盤 -->
+      <div class="keypad-grid mt-1">
+        
+        <!-- Row 1: 1, 2(UP), 3 -->
+        <div class="key-row row-1">
+          <button class="oval-key key-left" data-key="1">
+            <span class="text-sm font-bold leading-none">1</span>
+            <span class="text-[8px] text-slate-600 leading-none">_@</span>
+          </button>
+          <button id="key2" class="oval-key border-t border-sky-400/50" data-key="2" title="向上 (2)">
+            <span class="text-sm font-bold leading-none text-sky-900">2 ▲</span>
+            <span class="text-[8px] text-slate-600 leading-none">abc</span>
+          </button>
+          <button class="oval-key key-right" data-key="3">
+            <span class="text-sm font-bold leading-none">3</span>
+            <span class="text-[8px] text-slate-600 leading-none">def</span>
+          </button>
+        </div>
+
+        <!-- Row 2: 4(LEFT), 5(OK), 6(RIGHT) -->
+        <div class="key-row row-2">
+          <button id="key4" class="oval-key key-left border-l border-sky-400/50" data-key="4" title="向左 (4)">
+            <span class="text-sm font-bold leading-none text-sky-900">◀ 4</span>
+            <span class="text-[8px] text-slate-600 leading-none">ghi</span>
+          </button>
+          <button id="key5" class="oval-key" data-key="5" title="確認 (5)">
+            <span class="text-sm font-bold leading-none text-amber-900">5</span>
+            <span class="text-[8px] text-slate-600 leading-none">jkl</span>
+          </button>
+          <button id="key6" class="oval-key key-right border-r border-sky-400/50" data-key="6" title="向右 (6)">
+            <span class="text-sm font-bold leading-none text-sky-900">6 ▶</span>
+            <span class="text-[8px] text-slate-600 leading-none">mno</span>
+          </button>
+        </div>
+
+        <!-- Row 3: 7, 8(DOWN), 9 -->
+        <div class="key-row row-3">
+          <button class="oval-key key-left" data-key="7">
+            <span class="text-sm font-bold leading-none">7</span>
+            <span class="text-[8px] text-slate-600 leading-none">pqrs</span>
+          </button>
+          <button id="key8" class="oval-key border-b border-sky-400/50" data-key="8" title="向下 (8)">
+            <span class="text-sm font-bold leading-none text-sky-900">8 ▼</span>
+            <span class="text-[8px] text-slate-600 leading-none">tuv</span>
+          </button>
+          <button class="oval-key key-right" data-key="9">
+            <span class="text-sm font-bold leading-none">9</span>
+            <span class="text-[8px] text-slate-600 leading-none">wxyz</span>
+          </button>
+        </div>
+
+        <!-- Row 4: *, 0, # (靜音切換) -->
+        <div class="key-row row-4">
+          <button class="oval-key key-left" data-key="*">
+            <span class="text-sm font-bold leading-none">* +</span>
+            <span class="text-[8px] text-slate-600 leading-none">◀◀</span>
+          </button>
+          <button class="oval-key" data-key="0">
+            <span class="text-sm font-bold leading-none">0 _</span>
+            <span class="text-[8px] text-slate-600 leading-none">␣</span>
+          </button>
+          <button id="keyMute" class="oval-key key-right" data-key="#" title="切換靜音 (#)">
+            <span class="text-sm font-bold leading-none">#</span>
+            <span id="muteStatusText" class="text-[8px] text-slate-600 leading-none">鈴聲</span>
+          </button>
+        </div>
+
+      </div>
+
+      <!-- 底部微小麥克風孔 -->
+      <div class="w-1.5 h-1.5 rounded-full bg-[#0e141c] mx-auto shadow-inner"></div>
+
+    </div>
+  </div>
+
+  <script>
+    // Nokia 3310 原版壓電單音蜂鳴器音效合成
+    class NokiaAudio {
+      constructor() {
+        this.ctx = null;
+        this.muted = false;
+      }
+
+      init() {
+        if (!this.ctx) {
+          const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+          if (AudioContextClass) this.ctx = new AudioContextClass();
+        }
+        if (this.ctx && this.ctx.state === 'suspended') {
+          this.ctx.resume();
+        }
+      }
+
+      beep(freq, duration, type = 'square', gain = 0.08) {
+        if (this.muted) return;
+        this.init();
+        if (!this.ctx) return;
+
+        try {
+          const osc = this.ctx.createOscillator();
+          const g = this.ctx.createGain();
+          osc.type = type;
+          osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+          g.gain.setValueAtTime(gain, this.ctx.currentTime);
+          g.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + duration);
+          osc.connect(g);
+          g.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
+        } catch (e) {}
+      }
+
+      eatSound() {
+        this.beep(988, 0.035, 'square', 0.1);
+        setTimeout(() => this.beep(1480, 0.065, 'square', 0.12), 40);
+      }
+
+      wrapSound() {
+        // 穿牆特殊輕彈微音
+        this.beep(659, 0.025, 'triangle', 0.06);
+      }
+
+      clickSound() {
+        this.beep(490, 0.015, 'square', 0.03);
+      }
+
+      dieSound() {
+        if (this.muted) return;
+        const notes = [493, 440, 392, 330, 220, 146];
+        notes.forEach((freq, idx) => {
+          setTimeout(() => this.beep(freq, 0.08, 'sawtooth', 0.12), idx * 80);
+        });
+      }
+
+      toggleMute() {
+        this.muted = !this.muted;
+        return !this.muted;
+      }
+    }
+
+    const nokiaSound = new NokiaAudio();
+
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+
+    // 模式定義：true = 可穿牆, false = 不可穿牆 (撞牆即死)
+    let isWrapMode = true;
+
+    // 經典滿版點陣比例
+    const COLS = 26;
+    const ROWS = 16;
+    let cellW = 0;
+    let cellH = 0;
+
+    function resizeCanvas() {
+      const rect = canvas.getBoundingClientRect();
+      const dpr = window.devicePixelRatio || 1;
+      canvas.width = Math.floor(rect.width * dpr);
+      canvas.height = Math.floor(rect.height * dpr);
+      cellW = canvas.width / COLS;
+      cellH = canvas.height / ROWS;
+    }
+
+    window.addEventListener('resize', resizeCanvas);
+
+    const STATE = { MENU: 0, PLAYING: 1, PAUSED: 2, GAMEOVER: 3 };
+    let currentState = STATE.MENU;
+
+    let snake = [];
+    let direction = { x: 1, y: 0 };
+    let nextDirection = { x: 1, y: 0 };
+    let food = { x: 13, y: 8 };
+    let score = 0;
+
+    // 兩種模式各自獨立保存最高分
+    let highScores = {
+      wrap: parseInt(localStorage.getItem('nokia_3310_snake_wrap_high') || '0', 10),
+      solid: parseInt(localStorage.getItem('nokia_3310_snake_solid_high') || '0', 10)
+    };
+
+    let speedLevel = 5;
+    let lastTick = 0;
+    let blinkState = true;
+    let blinkTimer = 0;
+
+    // UI 元素
+    const liveScoreBadge = document.getElementById('liveScoreBadge');
+    const outerHighScoreBadge = document.getElementById('outerHighScoreBadge');
+    const outerModeTag = document.getElementById('outerModeTag');
+    const btnModeToggle = document.getElementById('btnModeToggle');
+    const modeStatusText = document.getElementById('modeStatusText');
+    const modeDot = document.getElementById('modeDot');
+    const wallIndicator = document.getElementById('wallIndicator');
+    const gameOverlay = document.getElementById('gameOverlay');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySub = document.getElementById('overlaySub');
+    const overlayModeBanner = document.getElementById('overlayModeBanner');
+    const speedDisplay = document.getElementById('speedDisplay');
+    const highScoreDisplay = document.getElementById('highScoreDisplay');
+
+    function getCurrentHighScore() {
+      return isWrapMode ? highScores.wrap : highScores.solid;
+    }
+
+    function updateModeUI() {
+      const currentHigh = getCurrentHighScore();
+      highScoreDisplay.innerText = currentHigh;
+      if (outerHighScoreBadge) outerHighScoreBadge.innerText = currentHigh;
+
+      if (isWrapMode) {
+        modeStatusText.innerText = "模式：可穿牆";
+        btnModeToggle.className = "px-2.5 py-1 rounded bg-emerald-950 hover:bg-emerald-900 text-emerald-300 border border-emerald-500/50 font-bold text-[11px] flex items-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer";
+        modeDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
+        outerModeTag.innerText = "穿牆版";
+        outerModeTag.className = "text-[8px] font-black px-1.5 py-0.5 rounded bg-[#1e2a39] text-[#a4b878] border border-[#1e2a39] tracking-wider cursor-pointer hover:bg-[#121c27] active:scale-95 transition-all";
+        
+        wallIndicator.className = "absolute inset-0 pointer-events-none border border-dashed border-[#243518]/40 m-0.5 rounded wrap-border-indicator";
+        overlayModeBanner.innerText = "目前模式: 可穿牆 (按 * 鍵切換)";
+      } else {
+        modeStatusText.innerText = "模式：不可穿牆";
+        btnModeToggle.className = "px-2.5 py-1 rounded bg-rose-950 hover:bg-rose-900 text-rose-300 border border-rose-500/50 font-bold text-[11px] flex items-center gap-1.5 shadow transition-all active:scale-95 cursor-pointer";
+        modeDot.className = "w-2 h-2 rounded-full bg-rose-400";
+        outerModeTag.innerText = "撞牆版";
+        outerModeTag.className = "text-[8px] font-black px-1.5 py-0.5 rounded bg-[#7a2222] text-[#ffdddd] border border-[#9b3131] tracking-wider cursor-pointer hover:bg-[#5e1919] active:scale-95 transition-all";
+        
+        wallIndicator.className = "absolute inset-0 pointer-events-none border-2 border-solid border-[#1c2712]/90 m-0.5 rounded";
+        overlayModeBanner.innerText = "目前模式: 不可穿牆 (按 * 鍵切換)";
+      }
+    }
+
+    function toggleGameMode() {
+      nokiaSound.clickSound();
+      isWrapMode = !isWrapMode;
+      updateModeUI();
+      if (currentState === STATE.PLAYING) {
+        triggerGameOver();
+      }
+    }
+
+    btnModeToggle.addEventListener('click', toggleGameMode);
+    outerModeTag.addEventListener('click', toggleGameMode);
+
+    updateModeUI();
+
+    function getSpeedInterval(spd) {
+      return Math.max(35, 195 - (spd * 17));
+    }
+
+    function resetGame() {
+      snake = [
+        { x: 6, y: 8 },
+        { x: 5, y: 8 },
+        { x: 4, y: 8 },
+        { x: 3, y: 8 }
+      ];
+      direction = { x: 1, y: 0 };
+      nextDirection = { x: 1, y: 0 };
+      score = 0;
+      liveScoreBadge.innerText = '0';
+      spawnFood();
+      currentState = STATE.PLAYING;
+      gameOverlay.classList.add('hidden');
+      nokiaSound.beep(880, 0.06);
+    }
+
+    function spawnFood() {
+      let valid = false;
+      while (!valid) {
+        food.x = Math.floor(Math.random() * COLS);
+        food.y = Math.floor(Math.random() * ROWS);
+        valid = !snake.some(segment => segment.x === food.x && segment.y === food.y);
+      }
+    }
+
+    function update() {
+      direction = { ...nextDirection };
+
+      let nextX = snake[0].x + direction.x;
+      let nextY = snake[0].y + direction.y;
+
+      let hasWrapped = false;
+
+      if (isWrapMode) {
+        // ★★★ 模式一：可穿牆邏輯 (Toroidal Wrap-around) ★★★
+        if (nextX < 0) {
+          nextX = COLS - 1;
+          hasWrapped = true;
+        } else if (nextX >= COLS) {
+          nextX = 0;
+          hasWrapped = true;
+        }
+
+        if (nextY < 0) {
+          nextY = ROWS - 1;
+          hasWrapped = true;
+        } else if (nextY >= ROWS) {
+          nextY = 0;
+          hasWrapped = true;
+        }
+
+        if (hasWrapped) {
+          nokiaSound.wrapSound();
+        }
+      } else {
+        // ★★★ 模式二：不可穿牆邏輯 (撞牆即判定死亡) ★★★
+        if (nextX < 0 || nextX >= COLS || nextY < 0 || nextY >= ROWS) {
+          triggerGameOver();
+          return;
+        }
+      }
+
+      const head = { x: nextX, y: nextY };
+
+      // 撞到自己身體依然判定結束
+      if (snake.some(seg => seg.x === head.x && seg.y === head.y)) {
+        triggerGameOver();
+        return;
+      }
+
+      snake.unshift(head);
+
+      // 吃食物判定
+      if (head.x === food.x && head.y === food.y) {
+        score += 10;
+        liveScoreBadge.innerText = score;
+        nokiaSound.eatSound();
+        spawnFood();
+      } else {
+        snake.pop();
+      }
+    }
+
+    function triggerGameOver() {
+      currentState = STATE.GAMEOVER;
+      nokiaSound.dieSound();
+      
+      const modeKey = isWrapMode ? 'wrap' : 'solid';
+      if (score > highScores[modeKey]) {
+        highScores[modeKey] = score;
+        localStorage.setItem(
+          isWrapMode ? 'nokia_3310_snake_wrap_high' : 'nokia_3310_snake_solid_high', 
+          score
+        );
+      }
+
+      updateModeUI();
+
+      overlayTitle.innerText = "GAME OVER";
+      overlaySub.innerHTML = `SCORE: ${score}<br><span class="text-xs">HIGH: ${getCurrentHighScore()}</span>`;
+      gameOverlay.classList.remove('hidden');
+    }
+
+    function render() {
+      // 液晶底色
+      ctx.fillStyle = '#94ad5e';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      if (isWrapMode) {
+        // 可穿牆模式：微細點陣虛線標示框
+        ctx.strokeStyle = '#2d421a';
+        ctx.lineWidth = 1;
+        ctx.setLineDash([4, 4]);
+        ctx.strokeRect(1, 1, canvas.width - 2, canvas.height - 2);
+        ctx.setLineDash([]);
+      } else {
+        // 不可穿牆模式：粗實心邊界牆 (撞到即死)
+        ctx.strokeStyle = '#1c2712';
+        ctx.lineWidth = 3;
+        ctx.setLineDash([]);
+        ctx.strokeRect(1.5, 1.5, canvas.width - 3, canvas.height - 3);
+      }
+
+      // 繪製閃爍食物 (像素十字符號)
+      if (blinkState) {
+        const fx = food.x * cellW;
+        const fy = food.y * cellH;
+        ctx.fillStyle = '#1c2712';
+        ctx.fillRect(fx + 1, fy + 1, cellW - 2, cellH - 2);
+        // 十字鏤空特徵
+        ctx.fillStyle = '#94ad5e';
+        ctx.fillRect(fx + cellW * 0.3, fy + cellH * 0.3, cellW * 0.4, cellH * 0.4);
+      }
+
+      // 繪製貪食蛇
+      snake.forEach((seg, index) => {
+        const sx = seg.x * cellW;
+        const sy = seg.y * cellH;
+
+        ctx.fillStyle = '#1c2712';
+        ctx.fillRect(sx + 1, sy + 1, cellW - 1.5, cellH - 1.5);
+
+        // 蛇頭細節 (像素雙眼)
+        if (index === 0) {
+          ctx.fillStyle = '#94ad5e';
+          if (direction.x !== 0) {
+            ctx.fillRect(sx + cellW * 0.3, sy + cellH * 0.2, cellW * 0.3, cellH * 0.22);
+            ctx.fillRect(sx + cellW * 0.3, sy + cellH * 0.58, cellW * 0.3, cellH * 0.22);
+          } else {
+            ctx.fillRect(sx + cellW * 0.2, sy + cellH * 0.3, cellW * 0.22, cellH * 0.3);
+            ctx.fillRect(sx + cellW * 0.58, sy + cellH * 0.3, cellW * 0.22, cellH * 0.3);
+          }
+        }
+      });
+    }
+
+    // 整機等比例縮放控制
+    let currentScale = 1.0;
+    const phoneScaler = document.getElementById('phoneScaler');
+    const zoomSlider = document.getElementById('zoomSlider');
+    const zoomPercentText = document.getElementById('zoomPercentText');
+    const btnZoomMinus = document.getElementById('btnZoomMinus');
+    const btnZoomPlus = document.getElementById('btnZoomPlus');
+    const btnZoomReset = document.getElementById('btnZoomReset');
+
+    function setScale(scale) {
+      currentScale = Math.min(1.50, Math.max(0.55, parseFloat(scale.toFixed(2))));
+      zoomSlider.value = currentScale;
+      zoomPercentText.innerText = Math.round(currentScale * 100) + '%';
+      phoneScaler.style.transform = `scale(${currentScale})`;
+      setTimeout(resizeCanvas, 120);
+    }
+
+    zoomSlider.addEventListener('input', (e) => setScale(parseFloat(e.target.value)));
+    btnZoomMinus.addEventListener('click', () => setScale(currentScale - 0.1));
+    btnZoomPlus.addEventListener('click', () => setScale(currentScale + 0.1));
+    btnZoomReset.addEventListener('click', () => setScale(1.0));
+
+    // 支援按住 Ctrl 滾輪快速微調縮放
+    window.addEventListener('wheel', (e) => {
+      if (e.ctrlKey) {
+        e.preventDefault();
+        setScale(currentScale + (e.deltaY < 0 ? 0.08 : -0.08));
+      }
+    }, { passive: false });
+
+    function setDir(dx, dy) {
+      nokiaSound.clickSound();
+      if (direction.x === -dx && dx !== 0) return;
+      if (direction.y === -dy && dy !== 0) return;
+      nextDirection = { x: dx, y: dy };
+    }
+
+    function toggleOK() {
+      nokiaSound.init();
+      if (currentState === STATE.MENU || currentState === STATE.GAMEOVER) {
+        resetGame();
+      } else if (currentState === STATE.PLAYING) {
+        currentState = STATE.PAUSED;
+        overlayTitle.innerText = "PAUSED";
+        overlaySub.innerText = "按 NAVI 鍵繼續";
+        gameOverlay.classList.remove('hidden');
+      } else if (currentState === STATE.PAUSED) {
+        currentState = STATE.PLAYING;
+        gameOverlay.classList.add('hidden');
+      }
+    }
+
+    function changeSpeed(delta) {
+      nokiaSound.clickSound();
+      speedLevel = Math.min(9, Math.max(1, speedLevel + delta));
+      speedDisplay.innerText = speedLevel;
+      if (currentState === STATE.MENU) {
+        overlaySub.innerHTML = `穿牆模式 SPEED: <span id="speedDisplay">${speedLevel}</span>`;
+      }
+    }
+
+    // 點擊 NAVI 鍵與 5 鍵
+    document.getElementById('keyNavi').addEventListener('click', toggleOK);
+    document.getElementById('key5').addEventListener('click', toggleOK);
+    document.getElementById('gameCanvas').addEventListener('click', () => {
+      if (currentState !== STATE.PLAYING) toggleOK();
+    });
+
+    // 右側滾動箭頭鍵調整速度
+    document.getElementById('keyScroll').addEventListener('click', () => {
+      changeSpeed(speedLevel >= 9 ? -8 : 1);
+    });
+
+    // 左側 C 鍵 (結束或返回選單)
+    document.getElementById('keyC').addEventListener('click', () => {
+      nokiaSound.clickSound();
+      if (currentState === STATE.PLAYING) {
+        triggerGameOver();
+      } else {
+        currentState = STATE.MENU;
+        overlayTitle.innerText = "SNAKE II";
+        overlaySub.innerHTML = `SPEED: <span id="speedDisplay">${speedLevel}</span>`;
+        updateModeUI();
+        gameOverlay.classList.remove('hidden');
+      }
+    });
+
+    // * 鍵：快捷切換「可穿牆 / 不可穿牆」模式
+    const starBtn = document.querySelector('[data-key="*"]');
+    if (starBtn) {
+      starBtn.title = "切換 穿牆 / 不可穿牆 模式 (*)";
+      starBtn.addEventListener('click', toggleGameMode);
+    }
+
+    // 經典 2, 4, 6, 8 方向控制鍵
+    document.getElementById('key2').addEventListener('click', () => {
+      if (currentState === STATE.PLAYING) setDir(0, -1);
+      else changeSpeed(1);
+    });
+    document.getElementById('key8').addEventListener('click', () => {
+      if (currentState === STATE.PLAYING) setDir(0, 1);
+      else changeSpeed(-1);
+    });
+    document.getElementById('key4').addEventListener('click', () => setDir(-1, 0));
+    document.getElementById('key6').addEventListener('click', () => setDir(1, 0));
+
+    // 靜音切換 #
+    const muteStatusText = document.getElementById('muteStatusText');
+    document.getElementById('keyMute').addEventListener('click', () => {
+      const isSoundOn = nokiaSound.toggleMute();
+      muteStatusText.innerText = isSoundOn ? "鈴聲" : "靜音";
+      nokiaSound.clickSound();
+    });
+
+    window.addEventListener('keydown', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', ' '].includes(e.key)) {
+        e.preventDefault();
+      }
+      nokiaSound.init();
+
+      switch (e.key) {
+        case 'ArrowUp':
+        case 'w':
+        case 'W':
+        case '2':
+          flashKey('key2');
+          if (currentState === STATE.PLAYING) setDir(0, -1);
+          break;
+        case 'ArrowDown':
+        case 's':
+        case 'S':
+        case '8':
+          flashKey('key8');
+          if (currentState === STATE.PLAYING) setDir(0, 1);
+          break;
+        case 'ArrowLeft':
+        case 'a':
+        case 'A':
+        case '4':
+          flashKey('key4');
+          if (currentState === STATE.PLAYING) setDir(-1, 0);
+          break;
+        case 'ArrowRight':
+        case 'd':
+        case 'D':
+        case '6':
+          flashKey('key6');
+          if (currentState === STATE.PLAYING) setDir(1, 0);
+          break;
+        case 'Enter':
+        case ' ':
+        case '5':
+          flashKey('keyNavi');
+          flashKey('key5');
+          toggleOK();
+          break;
+        case 'Escape':
+        case 'c':
+        case 'C':
+          flashKey('keyC');
+          if (currentState === STATE.PLAYING) triggerGameOver();
+          break;
+        case '*':
+          flashKey(document.querySelector('[data-key="*"]')?.id || '');
+          toggleGameMode();
+          break;
+        case '+':
+          changeSpeed(1);
+          break;
+        case '-':
+          changeSpeed(-1);
+          break;
+      }
+    });
+
+    function flashKey(id) {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.add('key-down');
+        setTimeout(() => el.classList.remove('key-down'), 100);
+      }
+    }
+
+    document.querySelectorAll('.oval-key').forEach(k => {
+      k.addEventListener('click', () => nokiaSound.clickSound());
+    });
+
+    function gameLoop(time) {
+      if (time - blinkTimer > 250) {
+        blinkState = !blinkState;
+        blinkTimer = time;
+      }
+
+      if (currentState === STATE.PLAYING) {
+        const interval = getSpeedInterval(speedLevel);
+        if (time - lastTick >= interval) {
+          update();
+          lastTick = time;
+        }
+      }
+
+      render();
+      requestAnimationFrame(gameLoop);
+    }
+
+    window.addEventListener('load', () => {
+      resizeCanvas();
+      requestAnimationFrame(gameLoop);
+    });
+  </script>
+</body>
+</html>
